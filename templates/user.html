@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediFind - Medicine Substitute Finder</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        h1, h2 {
+            color: #193b63;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        input, select, button {
+            padding: 11px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input, select {
+            border: 1px solid #cbd5e1;
+        }
+
+        button {
+            background: #193b63;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #285785;
+        }
+
+        .search-button {
+            background: #087f8c;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0 25px;
+            background: white;
+        }
+
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #193b63;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .message {
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .medicine-info {
+            background: #e0f2fe;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .price {
+            font-weight: bold;
+            color: #193b63;
+        }
+
+        .savings {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .note {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #64748b;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            input, select, form button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>MediFind - Medicine Substitute Finder</h1>
+
+    <p>
+        Find lower-priced medicines with the same listed composition
+        and view potential suppliers.
+    </p>
+
+    <!-- FLASH MESSAGES -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="message {{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+
+    <!-- MEDICINE SEARCH -->
+
+    <h2>Find a Medicine Substitute</h2>
+
+    <div class="card">
+
+        <form action="/" method="GET">
+
+            <input
+                type="text"
+                name="medicine"
+                placeholder="Enter medicine name"
+                value="{{ search_name }}"
+                required
+            >
+
+            <button type="submit" class="search-button">
+                Search Medicine
+            </button>
+
+            <button type="button"
+                    onclick="window.location.href='/'">
+                Show All Medicines
+            </button>
+
+        </form>
+
+        <p class="note">
+            Example: Dolo 650, Azithral 500, or Pantocid 40.
+        </p>
+
+    </div>
+
+
+    <!-- ORIGINAL MEDICINE -->
+
+    {% if original %}
+
+        <h2>Original Medicine</h2>
+
+        <div class="medicine-info">
+
+            <h3>{{ original.Med_Name }}</h3>
+
+            <p>
+                <strong>Composition:</strong>
+                {{ original.Composition }}
+            </p>
+
+            <p>
+                <strong>Medicine Type:</strong>
+                {{ original.Med_Type }}
+            </p>
+
+            <p>
+                <strong>Price:</strong>
+                ₹{{ "%.2f"|format(original.Price) }}
+            </p>
+
+        </div>
+
+
+        <!-- SUBSTITUTE MEDICINES -->
+
+        <h2>Cheaper Substitutes</h2>
+
+        {% if substitutes %}
+
+            <div class="table-wrapper">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Medicine ID</th>
+                            <th>Medicine Name</th>
+                            <th>Composition</th>
+                            <th>Type</th>
+                            <th>Price</th>
+                            <th>Estimated Savings</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for med in substitutes %}
+                            <tr>
+                                <td>{{ med.Med_ID }}</td>
+                                <td>{{ med.Med_Name }}</td>
+                                <td>{{ med.Composition }}</td>
+                                <td>{{ med.Med_Type }}</td>
+
+                                <td class="price">
+                                    ₹{{ "%.2f"|format(med.Price) }}
+                                </td>
+
+                                <td class="savings">
+                                    ₹{{ "%.2f"|format(med.Savings) }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <p>
+                No cheaper medicines with the same listed
+                composition were found in the sample database.
+            </p>
+
+        {% endif %}
+
+
+        <!-- SUPPLIERS -->
+
+        <h2>Potential Suppliers</h2>
+
+        {% if suppliers %}
+
+            <div class="table-wrapper">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Supplier ID</th>
+                            <th>Supplier Name</th>
+                            <th>City</th>
+                            <th>Contact Number</th>
+                            <th>Supply Category</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for supplier in suppliers %}
+                            <tr>
+                                <td>{{ supplier.Supplier_ID }}</td>
+                                <td>{{ supplier.Supplier_Name }}</td>
+                                <td>{{ supplier.City }}</td>
+                                <td>{{ supplier.Contact_No }}</td>
+                                <td>{{ supplier.Supply_Type }}</td>
+                            </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <p>No matching supplier categories were found.</p>
+
+        {% endif %}
+
+        <p class="note">
+            Supplier details are sample data. Actual medicine stock,
+            availability, and current prices are not verified.
+        </p>
+
+    {% endif %}
+
+
+    <!-- ADD MEDICINE -->
+
+    <h2>Add a Medicine</h2>
+
+    <div class="card">
+
+        <form action="/insert" method="POST">
+
+            <input
+                type="text"
+                name="med_name"
+                placeholder="Medicine Name"
+                required
+            >
+
+            <input
+                type="text"
+                name="composition"
+                placeholder="Composition"
+                required
+            >
+
+            <select name="med_type" required>
+                <option value="">Select Type</option>
+                <option value="Tablet">Tablet</option>
+                <option value="Capsule">Capsule</option>
+                <option value="Syrup">Syrup</option>
+                <option value="Injection">Injection</option>
+            </select>
+
+            <input
+                type="number"
+                name="price"
+                placeholder="Price in ₹"
+                min="0"
+                step="0.01"
+                required
+            >
+
+            <button type="submit">
+                Add Medicine
+            </button>
+
+        </form>
+
+        <p class="note">
+            New records are stored in the MySQL Det table.
+        </p>
+
+    </div>
+
+
+    <!-- COMPLETE MEDICINE DATABASE -->
+
+    <h2>Medicine Database</h2>
+
+    <div class="table-wrapper">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Medicine ID</th>
+                    <th>Medicine Name</th>
+                    <th>Composition</th>
+                    <th>Medicine Type</th>
+                    <th>Price (₹)</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for med in medicines %}
+                    <tr>
+                        <td>{{ med.Med_ID }}</td>
+                        <td>{{ med.Med_Name }}</td>
+                        <td>{{ med.Composition }}</td>
+                        <td>{{ med.Med_Type }}</td>
+
+                        <td>
+                            {{ "%.2f"|format(med.Price) }}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5">
+                            No medicines found in the database.
+                        </td>
+                    </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+    </div>
+
+
+    <footer>
+        <p>MediFind</p>
+        <p>Academic Demonstration Project</p>
+    </footer>
+
+</div>
+
+</body>
+</html>
